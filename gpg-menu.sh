@@ -90,7 +90,7 @@ encryptMessage(){
     I=$((I+1))
   done < $FILE
   echo $MESSAGE > $MESSAGEFILE
-  gpg --encrypt -sign --armor ${RECIPIANTS[@]} ${MESSAGEFILE}
+  gpg --encrypt --sign --armor ${RECIPIANTS[@]} ${MESSAGEFILE}
   read -rp "Delete plain text file? [Y/n]: " CHOICE
   CHOICE=$(echo $CHOICE | awk '{print tolower($0)}')
   if [ $CHOICE = "y" ]; then
