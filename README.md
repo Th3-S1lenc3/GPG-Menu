@@ -25,7 +25,7 @@ GPG Menu                       Version: Alpha
 Clone the repository (or download zip). Then execute the install.sh file.
 
 ```
-$ cd GPG-menu
+$ cd GPG-Menu
 $ chmod +x install.sh
 $ ./install.sh
 ```
