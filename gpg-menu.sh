@@ -1,13 +1,37 @@
 #!/bin/bash
+#########################################################################
+# gpg-menu is a cli menu for gnupg2
+# Copyright (C) 2020 Th3_S1lenc3
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+########################################################################
 
-KEYSERVER=$(cat ./preferences | grep KEYSERVER | awk '{print $2}')
-VERSION=$(cat ./version)
-BACKUPMESSAGE=$(cat ./preferences | grep BACKUPMESSAGE | awk '{print $2}')
+preferences=/etc/gpg-menu/preferences
+version=/etc/gpg-menu/version
+NEWMESSAGETEMPLATE=/etc/gpg-menu/New_Message.template
+KEYSERVER=$(cat ${preferences} | grep KEYSERVER | awk '{print $2}')
+VERSION=$(cat ${version})
+BACKUPMESSAGE=$(cat ${preferences} | grep BACKUPMESSAGE | awk '{print $2}')
 DATE=$(date +"%s")
 
 functionEND(){
   echo "Done"
   sleep 1
+}
+
+erase(){
+  srm -vzr $1
 }
 
 header(){
@@ -34,10 +58,16 @@ menu(){
 }
 
 encryptMessage(){
-  if [ $BACKUPMESSAGE = True && -f New_Message ]; then
-    mv New_Message New_Message.$DATE
+  if [ -f New_Message ]; then
+    echo "Old message found. Do you wish to backup this message? If no the message will be overwritten. [Y/n]: "
+    read -rp ":" CHOICE
+    CHOICE=$(echo $CHOICE | awk '{print tolower($0)}')
+    if [ $CHOICE = "y" ]; then
+      mv New_Message New_Message.$DATE
+      functionEND
+    fi
   fi
-  cat New_Message.template > New_Message
+  cat ${NEWMESSAGETEMPLATE} > New_Message
   nano New_Message
   echo "Message Saved"
   declare -a RECIPIANTS
@@ -66,7 +96,7 @@ encryptMessage(){
   if [ $CHOICE = "y" ]; then
     erase $MESSAGEFILE
   fi
-  echo "Message encrypted and stored as ${MESSAGEFILE}.asc"
+  echo "Message encrypted, signed and stored in as ${MESSAGEFILE}.asc"
   sleep 1
 }
 
@@ -102,7 +132,7 @@ importPublicKey(){
     if [ $CHOICE = "y" ]; then
       read -rp "Keyserver: " KEYSERVERNEW
       KEYSERVERNEW=$(echo $KEYSERVERNEW | awk '{print tolower($0)}')
-      sed -i "s/${KEYSERVER}/${KEYSERVERNEW}/g" preferences
+      sed -i "s/${KEYSERVER}/${KEYSERVERNEW}/g" ${preferences}
       KEYSERVER=$KEYSERVERNEW
     fi
     read -rp "Name or Email To Search: " SEARCH_PARAM
